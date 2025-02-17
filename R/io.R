@@ -215,11 +215,18 @@ get_seqinfo <- function(genome) {
   }
 
   assert_that(is_scalar_character(genome))
-  assert_that(genome %in% names(bedtorch::hs_seqinfo),
-    msg = paste0("Unknown genome: ", genome)
-  )
-
-  return(bedtorch::hs_seqinfo[[genome]])
+  
+  # First try bedtorch's built-in genomes
+  if (genome %in% names(bedtorch::hs_seqinfo)) {
+    return(bedtorch::hs_seqinfo[[genome]])
+  }
+  
+  # If not found, try getting from GenomeInfoDb
+  tryCatch({
+    return(GenomeInfoDb::Seqinfo(genome=genome))
+  }, error = function(e) {
+    stop(paste0("Unknown genome: ", genome, ". Not found in bedtorch or GenomeInfoDb."))
+  })
 }
 
 
